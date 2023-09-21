@@ -4,7 +4,7 @@
 // Based off OSC Async https://github.com/Frando/async-osc
 
 use async_osc::{prelude::*, OscPacket, OscType, Result};
-use async_std::{stream::StreamExt, task::{self}, sync::Arc,};
+use async_std::{stream::StreamExt, sync::Arc,};
 use std::sync::atomic::AtomicBool;
 
 use crate::osc_timeout::osc_timeout;
@@ -15,32 +15,24 @@ mod terminator;
 mod osc_timeout;
 mod handle_proximity_parameter;
 
+// TODO: clean up and refactor to avoid using as many .clone() statements
 
 #[tokio::main]
 async fn main() -> Result<()> {
 
-    let (
-        headpat_device_uris,
-        min_speed,
-        mut max_speed,
-        speed_scale,
-        port_rx,
-        proximity_parameters_multi,
-        max_speed_parameter_address,
-        max_speed_low_limit,
-        timeout,
-    ) = config::load_config();
+    let mut config = config::load_config();
 
-    // Setup Start / Stop of Terminiator
+    // Setup Start / Stop of Terminator
     let running = Arc::new(AtomicBool::new(false));
 
     // Rx/Tx Socket Setup
-    let mut rx_socket = giggletech_osc::setup_rx_socket(port_rx).await?;
+    let mut rx_socket = giggletech_osc::setup_rx_socket(config.port_rx).await?;
 
     // Timeout
-    for ip in &headpat_device_uris {
+    for ip in config.headpat_device_uris.clone() {
         let headpat_device_ip_clone = ip.clone();
-        task::spawn(async move {
+        let timeout = config.timeout_setting.clone();
+        tokio::spawn(async move {
             osc_timeout(&headpat_device_ip_clone, timeout).await.unwrap();
         });
     }
@@ -59,27 +51,23 @@ async fn main() -> Result<()> {
                 };
 
                 // Max Speed Setting
-                if address == max_speed_parameter_address {
+                if address == config.max_speed_parameter_address {
                     data_processing::print_speed_limit(value);
-                    max_speed = value.max(max_speed_low_limit);
+                    config.max_speed_float = value.max(config.max_speed_low_limit.clone());
                 } else {
-                    let index = proximity_parameters_multi.iter().position(|a| *a == address);
-
-                    match index {
-                        Some(i) => {
-    
-                            handle_proximity_parameter::handle_proximity_parameter(
-                                running.clone(), // Terminator
-                                &Arc::new(headpat_device_uris[i].clone()),
-                                value,
-                                max_speed,
-                                min_speed,
-                                speed_scale,
-                                &proximity_parameters_multi[i],
-                            )
-                            .await?
-                        }
-                        None => {}
+                    let index = config.proximity_parameters_multi.iter().position(|a| *a == address);
+                    if let Some(i) = index {
+                        handle_proximity_parameter::handle_proximity_parameter(
+                            running.clone(),
+                            &Arc::new(config.headpat_device_uris[i].clone()), 
+                            value, 
+                            config.max_speed_float, 
+                            config.min_speed_float, 
+                            config.speed_scale_float, 
+                            &config.proximity_parameters_multi[i]
+                        ).await?;
+                    } else {
+                        log::error!("TODO:")
                     }
                 }
             }
