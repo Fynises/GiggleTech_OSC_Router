@@ -3,10 +3,9 @@
 // by Sideways
 // Based off OSC Async https://github.com/Frando/async-osc
 
-
 use async_osc::{prelude::*, OscPacket, OscType, Result};
 use async_std::{stream::StreamExt, task::{self}, sync::Arc,};
-use std::sync::atomic::{AtomicBool};
+use std::sync::atomic::AtomicBool;
 
 use crate::osc_timeout::osc_timeout;
 mod data_processing;
@@ -17,7 +16,7 @@ mod osc_timeout;
 mod handle_proximity_parameter;
 
 
-#[async_std::main]
+#[tokio::main]
 async fn main() -> Result<()> {
 
     let (
