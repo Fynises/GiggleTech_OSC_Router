@@ -4,13 +4,13 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use anyhow::Result;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use crate::giggletech_osc;
 
-lazy_static! {
-    pub static ref DEVICE_LAST_SIGNAL_TIME: Arc<Mutex<HashMap<String, Instant>>> =
-        Arc::new(Mutex::new(HashMap::new()));
-}
+//TODO: replace with once_cell
+pub static DEVICE_LAST_SIGNAL_TIME: Lazy<Arc<Mutex<HashMap<String, Instant>>>> = Lazy::new(|| {
+    Arc::new(Mutex::new(HashMap::new()))
+});
 
 pub async fn osc_timeout(device_ip: &str, timeout: u64) -> Result<()> {
     loop {
