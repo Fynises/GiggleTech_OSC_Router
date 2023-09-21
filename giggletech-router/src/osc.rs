@@ -142,9 +142,9 @@ impl Stream for OscSocket {
             None => None,
             Some(packet) => Some(match packet {
                 Err(err) => Err(err.into()),
-                Ok((buf, peer_addr)) => rosc::decoder::decode(&buf[..])
-                    .map_err(|e| e.into())
-                    .map(|p| (p, peer_addr)),
+                Ok((buf, peer_addr)) => todo!(), //rosc::decoder::decode(&buf[..]) TODO: function missing after crate update
+                                                 //    .map_err(|e| e.into())
+                                                 //    .map(|p| (p, peer_addr)),
             }),
         };
         Poll::Ready(message)

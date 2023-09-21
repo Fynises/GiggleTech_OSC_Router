@@ -18,17 +18,20 @@ fn banner_txt(){
                                                                                 
 }
 
-pub(crate) fn load_config() -> (
-    Vec<String>,    // headpat_device_URIs
-    f32,            // min_speed_float
-    f32,            // max_speed_float
-    f32,            // speed_scale_float
-    String,         // port_rx
-    Vec<String>,    // proximity_parameters_multi
-    String,         // max_speed_parameter_address
-    f32,            // Max Speed Low Limit
-    u64,            // Timeout Setting
-    ) {
+#[derive(Clone, Debug)]
+pub struct GiggleTechConfig {
+    pub headpat_device_uris: Vec<String>,
+    pub min_speed_float: f32,
+    pub max_speed_float: f32,
+    pub speed_scale_float: f32,
+    pub port_rx: String,
+    pub proximity_parameters_multi: Vec<String>,
+    pub max_speed_parameter_address: String,
+    pub max_speed_low_limit: f32,
+    pub timeout_setting: u64,
+}
+
+pub(crate) fn load_config() -> GiggleTechConfig {
     let mut config = Ini::new();
 
     match config.load("./config.ini") {
@@ -71,20 +74,20 @@ pub(crate) fn load_config() -> (
 
     const MAX_SPEED_LOW_LIMIT_CONST: f32 = 0.05;
 
-    let min_speed                = config.get("Config", "min_speed").unwrap();
-    let min_speed_float             = min_speed.parse::<f32>().unwrap() / 100.0;
+    let min_speed = config.get("Config", "min_speed").unwrap();
+    let min_speed_float = min_speed.parse::<f32>().unwrap() / 100.0;
     
-    let max_speed                   = config.get("Config", "max_speed").unwrap().parse::<f32>().unwrap() / 100.0; 
-    let max_speed_low_limit         = MAX_SPEED_LOW_LIMIT_CONST;
-    let max_speed_float             = max_speed.max(max_speed_low_limit);
+    let max_speed = config.get("Config", "max_speed").unwrap().parse::<f32>().unwrap() / 100.0; 
+    let max_speed_low_limit = MAX_SPEED_LOW_LIMIT_CONST;
+    let max_speed_float = max_speed.max(max_speed_low_limit);
     
-    let speed_scale              = config.get("Config", "max_speed_scale").unwrap();
-    let speed_scale_float           = speed_scale.parse::<f32>().unwrap() / 100.0;
+    let speed_scale = config.get("Config", "max_speed_scale").unwrap();
+    let speed_scale_float = speed_scale.parse::<f32>().unwrap() / 100.0;
     
-    let port_rx                  = config.get("Setup", "port_rx").unwrap();
+    let port_rx = config.get("Setup", "port_rx").unwrap();
     
-    let timeout_str              = config.get("Config", "timeout").unwrap();
-    let timeout                     = timeout_str.parse::<u64>().unwrap_or(0);
+    let timeout_str = config.get("Config", "timeout").unwrap();
+    let timeout_setting = timeout_str.parse::<u64>().unwrap_or(0);
     
     let max_speed_parameter_address = format!("/avatar/parameters/{}", config.get("Setup", "max_speed_parameter").unwrap_or_else(|| "/avatar/parameters/max_speed".into()));
 
@@ -101,10 +104,10 @@ pub(crate) fn load_config() -> (
     println!(" Min Speed: {}%", min_speed);
     println!(" Max Speed: {:?}%", max_speed_float * 100.0);
     println!(" Scale Factor: {}%", speed_scale);
-    println!(" Timeout: {}s", timeout);
+    println!(" Timeout: {}s", timeout_setting);
     println!("\nWaiting for pats...");
 
-    (
+    GiggleTechConfig {
         headpat_device_uris,
         min_speed_float,
         max_speed_float,
@@ -113,8 +116,8 @@ pub(crate) fn load_config() -> (
         proximity_parameters_multi,
         max_speed_parameter_address,
         max_speed_low_limit,
-        timeout,
-    )
+        timeout_setting,
+    }
 }
 
 
