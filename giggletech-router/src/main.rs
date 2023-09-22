@@ -17,7 +17,7 @@ mod handle_proximity_parameter;
 
 // TODO: clean up and refactor to avoid using as many .clone() statements
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
 
     let mut config = config::load_config();
