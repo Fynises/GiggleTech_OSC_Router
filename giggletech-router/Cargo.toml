@@ -12,6 +12,7 @@ authors = ["Giggle Tech <hello@giggletech.io>"
 
 [dependencies]
 rosc = "0.10.1"
+async-osc = "0.2.0"
 async-std = { version = "1.8.0", features = ["attributes", "unstable"] }
 log = "0.4.14"
 futures-lite = "1.11.3"
