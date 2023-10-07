@@ -15,7 +15,7 @@ pub(crate) fn create_socket_address(host: &str, port: &str) -> String {
     address_parts.join(":")
 }
 
-pub(crate) async fn setup_rx_socket(port: std::string::String) -> Result<OscSocket> {
+pub(crate) async fn setup_rx_socket(port: &String) -> Result<OscSocket> {
     let rx_socket_address = create_socket_address("127.0.0.1", &port.to_string());
     let rx_socket = OscSocket::bind(rx_socket_address).await?;
     Ok(rx_socket)
