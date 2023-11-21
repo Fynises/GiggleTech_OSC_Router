@@ -3,7 +3,7 @@
 use async_osc::Result;
 use async_std::sync::Arc;
 use std::{
-    sync::atomic::{AtomicBool},
+    sync::atomic::AtomicBool,
     time::Instant,
 };
 
@@ -26,9 +26,11 @@ pub(crate) async fn handle_proximity_parameter(
     terminator::stop(running.clone()).await?;
 
     // Update Last Signal Time for timeout clock 
-    let mut device_last_signal_times = osc_timeout::DEVICE_LAST_SIGNAL_TIME.lock().unwrap();
-    device_last_signal_times.insert(device_ip.to_string(), Instant::now());
-    
+    {
+        let mut device_last_signal_times = osc_timeout::DEVICE_LAST_SIGNAL_TIME.lock().unwrap();
+        device_last_signal_times.insert(device_ip.to_string(), Instant::now());
+    }
+
     if value == 0.0 {
         println!("Stopping pats...");
         terminator::start(running.clone(), &device_ip).await?;

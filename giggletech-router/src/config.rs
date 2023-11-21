@@ -20,6 +20,7 @@ fn banner_txt(){
 
 #[derive(Clone, Debug)]
 pub struct GiggleTechConfig {
+    pub twitch_integration_url: String,
     pub headpat_device_uris: Vec<String>,
     pub min_speed_float: f32,
     pub max_speed_float: f32,
@@ -107,7 +108,11 @@ pub(crate) fn load_config() -> GiggleTechConfig {
     println!(" Timeout: {}s", timeout_setting);
     println!("\nWaiting for pats...");
 
+    let twitch_url = config.get("Setup", "twitch_integration_url").unwrap_or(String::from(""));
+    println!("twitch url: {}", twitch_url);
+
     GiggleTechConfig {
+        twitch_integration_url: twitch_url,
         headpat_device_uris,
         min_speed_float,
         max_speed_float,

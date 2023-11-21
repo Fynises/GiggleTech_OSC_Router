@@ -3,8 +3,11 @@
 // by Sideways
 // Based off OSC Async https://github.com/Frando/async-osc
 
+use actor_lite::handle::ActorHandle;
 use anyhow::Result;
 use async_std::{stream::StreamExt, sync::Arc,};
+use message_queue::{osc_environment::OscEnvironment, queue_handler::QueueHandler};
+use twitch_integration::socket::TwitchSocket;
 use std::sync::atomic::AtomicBool;
 
 use crate::osc_timeout::osc_timeout;
@@ -15,6 +18,9 @@ mod terminator;
 mod osc_timeout;
 mod handle_proximity_parameter;
 mod handle_osc_message;
+mod handle_twitch_message;
+mod twitch_integration;
+mod message_queue;
 
 // TODO: clean up and refactor to avoid using as many .clone() statements
 
@@ -24,7 +30,7 @@ async fn main() -> Result<()> {
     let mut config = config::load_config();
 
     // Setup Start / Stop of Terminator
-    let running = Arc::new(AtomicBool::new(false));
+    let running = Arc::new(AtomicBool::new(true));
 
     // Rx/Tx Socket Setup
     let mut rx_socket = giggletech_osc::setup_rx_socket(&config.port_rx).await?;
@@ -37,13 +43,26 @@ async fn main() -> Result<()> {
             osc_timeout(&headpat_device_ip_clone, timeout).await.unwrap();
         });
     }
-    // Listen for OSC Packets
+
+    let twitch_url = config.twitch_integration_url.clone();
+    let osc_environment = OscEnvironment::new(config, running.clone());
+
+    let message_queue = Arc::new(ActorHandle::new_async(|tx| QueueHandler::new(
+        tx.clone(), 
+        osc_environment, 
+    )));
+
+    let _twitch_client = match TwitchSocket::new(message_queue.clone(), twitch_url).await {
+        Ok(v) => Some(v),
+        Err(e) => {
+            println!("error occurred establishing twitch integration connection: {e:#?}");
+            None
+        },
+    };
+
+    //Listen for OSC Packets
     loop {
-        tokio::select! {
-            res = rx_socket.next() => {
-                handle_osc_message::handle_osc_message(res, &mut config, running.clone()).await?;
-            },
-            //TODO add twitch integration input
-        }
+        let osc_message = rx_socket.next().await;
+        message_queue.send(message_queue::message::QueueMessage::FromOsc(osc_message))?
     }
 }

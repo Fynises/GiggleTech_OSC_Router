@@ -1,5 +1,5 @@
 use std::{net::SocketAddr, sync::{Arc, atomic::AtomicBool}};
-use anyhow::{Result, Context};
+use anyhow::Result;
 use async_osc::{OscPacket, Error, prelude::OscMessageExt, OscType};
 use crate::handle_proximity_parameter;
 use crate::data_processing;
@@ -12,8 +12,13 @@ pub async fn handle_osc_message(
     config: &mut GiggleTechConfig,
     running_terminator: Arc<AtomicBool>,
 ) -> Result<()> {
-    let (packet, _peer_addr) = rx.context("error receiving osc packet")??;
-    
+
+    //let (packet, _peer_addr) = rx.context("error receiving osc packet")??;
+    let (packet, _peer_addr) = match rx {
+        Some(s) => s?,
+        None => panic!("receiving rx packet was none"),
+    };
+
     match packet {
         OscPacket::Bundle(_) => todo!(),
         OscPacket::Message(message) => {
