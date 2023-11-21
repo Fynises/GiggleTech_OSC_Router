@@ -1,5 +1,5 @@
 [package]
-name = "async-osc"
+name = "giggletech-router"
 version = "1.0.0"
 description = "Heavy Modded Async "
 readme = "README.md"
@@ -24,6 +24,7 @@ futures = "0.3"
 #ini = "1.3.0"
 anyhow = "1.0.44"
 once_cell = "1.8.0"
+async-osc = "0.2.0"
 
 
 
