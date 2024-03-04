@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 use actor_lite::error::Error;
-use actor_lite::r#async::handler::Handler;
+use actor_lite::asynchronous::handler::Handler;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::time;
 use anyhow::Result;
