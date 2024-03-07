@@ -14,10 +14,7 @@ pub(crate) async fn handle_twitch_message(
         let mut device_last_signal_times = osc_timeout::DEVICE_LAST_SIGNAL_TIME.lock().unwrap();
         device_last_signal_times.insert(device_ip.to_string(), Instant::now());
     }
-
-    println!("DEBUG: sending signal from twitch");
+    
     giggletech_osc::send_data(&device_ip, power).await?;
-    
-    
     Ok(())
 }

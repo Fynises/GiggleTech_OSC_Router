@@ -55,7 +55,7 @@ async fn main() -> Result<()> {
     let _twitch_client = match TwitchSocket::new(message_queue.clone(), twitch_url).await {
         Ok(v) => Some(v),
         Err(e) => {
-            println!("error occurred establishing twitch integration connection: {e:#?}");
+            log::error!("error occurred establishing twitch integration connection: {e:#?}");
             None
         },
     };

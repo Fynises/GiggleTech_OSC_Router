@@ -1,5 +1,5 @@
 [package]
-name = "async-osc"
+name = "giggletech-twitch"
 version = "1.0.0"
 description = "Heavy Modded Async "
 readme = "README.md"

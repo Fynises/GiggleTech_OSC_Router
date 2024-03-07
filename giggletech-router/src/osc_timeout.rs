@@ -7,7 +7,6 @@ use anyhow::Result;
 use once_cell::sync::Lazy;
 use crate::giggletech_osc;
 
-//TODO: replace with once_cell
 pub static DEVICE_LAST_SIGNAL_TIME: Lazy<Arc<Mutex<HashMap<String, Instant>>>> = Lazy::new(|| {
     Arc::new(Mutex::new(HashMap::new()))
 });
