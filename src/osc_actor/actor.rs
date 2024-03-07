@@ -51,15 +51,16 @@ impl OscActor {
                 return Ok(());
             }
         };
+        
+        let max_speed = {
+            if address == self.config.max_speed_parameter_address {
+                value.max(self.config.max_speed_low_limit)
+            } else {
+                self.config.max_speed_float
+            }
+        };
 
-        let mut max_speed = self.config.max_speed_float;
-
-        if address == self.config.max_speed_parameter_address {
-            max_speed = value.max(self.config.max_speed_low_limit)
-        } else {
-            self.handle_proximity(address.to_string(), value, max_speed)
-                .await?;
-        }
+        self.handle_proximity(address.to_string(), value, max_speed).await?;
         Ok(())
     }
 
@@ -82,7 +83,7 @@ impl OscActor {
                 self.config.speed_scale_float,
                 &device_id
             );
-            self.main_actor.sender().send((device_id, processed_value))?
+            self.main_actor.sender().send((device_id, processed_value))?;
         }
         Ok(())
     }
