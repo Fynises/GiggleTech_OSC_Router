@@ -1,4 +1,19 @@
-[workspace]
-members = [
-  "giggletech-router"
-]
+[package]
+name = "giggletech-router"
+version = "1.0.0"
+description = "router for Giggletech"
+readme = "README.md"
+edition = "2018"
+keywords = ["osc", "vrchat", "async-std"]
+authors = ["Giggle Tech <hello@giggletech.io>"]
+
+[features]
+
+[dependencies]
+log = "0.4.14"
+thiserror = "1.0.57"
+configparser = "3.0.2"
+tokio = { version = "1.36.0", features = ["full"] }
+anyhow = "1.0.80"
+
+[dev-dependencies]
