@@ -1,4 +1,4 @@
-use std::net::IpAddr;
+use std::{collections::HashMap, net::IpAddr};
 use configparser::ini::Ini;
 
 pub struct Config {
@@ -65,4 +65,15 @@ impl Config {
         format!("/avatar/parameters/{}", config.get("Setup", "max_speed_parameter").unwrap_or_else(|| "/avatar/parameters/max_speed".into()))
     }
 
+    pub fn make_proximity_ip_mapper(&self) -> HashMap<String, String> {
+        if self.proximity_parameters_multi.len() != self.headpat_device_uris.len() {
+            panic!("invalid config");
+        }
+
+        let mut mapper: HashMap<String, String> = HashMap::new();
+        for i in 0..self.proximity_parameters_multi.len() {
+            mapper.insert(self.proximity_parameters_multi[i].clone(), self.headpat_device_uris[i].clone());
+        }
+        mapper
+    }
 }

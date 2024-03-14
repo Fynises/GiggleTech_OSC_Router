@@ -1,10 +1,10 @@
 use std::sync::Arc;
-use crate::{config::Config, device_socket::DeviceSocket, main_actor::handle::MainActorHandle, osc_actor::actor::OscActor};
+use crate::{config::Config, device_actor::device_socket_handle::DeviceSocketHandle, main_actor::handle::MainActorHandle, osc_actor::actor::OscActor};
 
 mod main_actor;
 mod osc_actor;
 mod config;
-mod device_socket;
+mod device_actor;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
@@ -40,7 +40,7 @@ async fn main() {
 
 
 
-    let devices = DeviceSocket::from_config(application_config.clone()).await;
+    let devices = DeviceSocketHandle::from_config(application_config.clone()).await;
     let main_actor = Arc::new(MainActorHandle::new(devices));
 
     let mut osc_actor = OscActor::new(main_actor.clone(), application_config.clone()).await;

@@ -2,14 +2,14 @@ use crate::{config::Config, main_actor::handle::MainActorHandle};
 use anyhow::Result;
 use async_osc::{prelude::OscMessageExt, Error, OscMessage, OscPacket, OscSocket, OscType};
 use futures_util::StreamExt;
-use std::{net::SocketAddr, sync::Arc};
-
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 type OscRxPacket = Result<(OscPacket, SocketAddr), Error>;
 
 pub struct OscActor {
     rx_socket: OscSocket,
     main_actor: Arc<MainActorHandle>,
     config: Arc<Config>,
+    proximity_ip_mapper: HashMap<String, String>,
 }
 
 impl OscActor {
@@ -17,10 +17,15 @@ impl OscActor {
         let address = format!("127.0.0.1:{}", config.port_rx);
         let rx_socket = OscSocket::bind(address).await
             .expect("error occurred connecting to OSC");
+
+        let proximity_ip_mapper = config.make_proximity_ip_mapper();
+        log::info!("made mapper: {proximity_ip_mapper:#?}");
+
         Self {
             rx_socket,
             main_actor,
             config,
+            proximity_ip_mapper
         }
     }
 
@@ -51,7 +56,7 @@ impl OscActor {
                 return Ok(());
             }
         };
-        
+
         let max_speed = {
             if address == self.config.max_speed_parameter_address {
                 value.max(self.config.max_speed_low_limit)
@@ -70,10 +75,19 @@ impl OscActor {
         value: f32,
         max_speed: f32,
     ) -> Result<()> {
+
+        let device_ip = match self.proximity_ip_mapper.get(&device_id) {
+            Some(ip) => ip.clone(),
+            None => {
+                log::warn!("ip not found for {}", device_id);
+                return Ok(())
+            },
+        };
+
         if value == 0.0 {
             log::info!("stopping...");
             for _ in 0..5 {
-                self.main_actor.sender().send((device_id.clone(), 0i32))?;
+                self.main_actor.sender().send((device_ip.clone(), 0i32))?;
             }
         } else {
             let processed_value = process_pat(
@@ -83,7 +97,7 @@ impl OscActor {
                 self.config.speed_scale_float,
                 &device_id
             );
-            self.main_actor.sender().send((device_id, processed_value))?;
+            self.main_actor.sender().send((device_ip, processed_value))?;
         }
         Ok(())
     }
