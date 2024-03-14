@@ -5,6 +5,7 @@ mod main_actor;
 mod osc_actor;
 mod config;
 mod device_actor;
+mod device_uri;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
@@ -27,7 +28,7 @@ async fn main() {
     println!("\n");
     println!(" Device Maps");
     for (i, parameter) in application_config.proximity_parameters_multi.iter().enumerate() {
-        println!(" {} => {}", parameter.trim_start_matches("/avatar/parameters/"), application_config.headpat_device_uris[i]);
+        println!(" {} => {:?}", parameter.trim_start_matches("/avatar/parameters/"), application_config.headpat_device_uris[i]);
     }
 
     println!("\n Listening for OSC on port: {}", application_config.port_rx);

@@ -1,8 +1,10 @@
 use std::{collections::HashMap, net::IpAddr};
 use configparser::ini::Ini;
 
+use crate::device_uri::{DeviceType, DeviceUri};
+
 pub struct Config {
-    pub headpat_device_uris: Vec<String>,
+    pub headpat_device_uris: Vec<DeviceUri>,
     pub min_speed_float: f32,
     pub max_speed_float: f32,
     pub speed_scale_float: f32,
@@ -32,7 +34,7 @@ impl Config {
         }
     }
 
-    fn load_headpat_device_uris(config: &Ini) -> Vec<String> {
+    fn load_headpat_device_uris(config: &Ini) -> Vec<DeviceUri> {
         let uris: Vec<String> = config.get("Setup", "device_ips")
             .expect("error loading config field Setup::device_ips")
             .split_whitespace()
@@ -46,11 +48,29 @@ impl Config {
                     }
                 }
             }).collect();
+
+        
         if uris.is_empty() {
             panic!("Error: no device URIs specified in config file")
         }
+        let device_types: Vec<DeviceType> = config.get("Setup", "device_types")
+            .expect("error loading config field Setup::device_types")
+            .split_whitespace()
+            .map(|s| DeviceType::parse(s))
+            .collect();
+        
+        if uris.len() != device_types.len() {
+            panic!("uri array doesn't match device types array")
+        }
 
-        uris
+        let mut device_uris: Vec<DeviceUri> = Vec::new();
+        for i in 0..uris.len() {
+            device_uris.push(DeviceUri {
+                uri: uris[i].clone(),
+                device_type: device_types[i].clone(),
+            })
+        }
+        device_uris
     }
 
     fn load_proximity_parameters_multi(config: &Ini) -> Vec<String> {
@@ -72,7 +92,7 @@ impl Config {
 
         let mut mapper: HashMap<String, String> = HashMap::new();
         for i in 0..self.proximity_parameters_multi.len() {
-            mapper.insert(self.proximity_parameters_multi[i].clone(), self.headpat_device_uris[i].clone());
+            mapper.insert(self.proximity_parameters_multi[i].clone(), self.headpat_device_uris[i].uri.clone());
         }
         mapper
     }

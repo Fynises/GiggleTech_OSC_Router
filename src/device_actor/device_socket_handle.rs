@@ -3,11 +3,7 @@ use anyhow::Result;
 use async_osc::OscSocket;
 use tokio::sync::mpsc::{self, UnboundedSender};
 use crate::config::Config;
-
 use super::device_socket::DeviceSocket;
-
-const TX_OSC_MOTOR_ADDRESS: &str = "/avatar/parameters/motor"; 
-//const TX_OSC_GIGGLESPARK: &str = "/motor"; 
 
 pub struct DeviceSocketHandle {
     tx: UnboundedSender<i32>,
@@ -39,8 +35,12 @@ impl DeviceSocketHandle {
         let mut socket_map: HashMap<String, Self> = HashMap::new();
         
         for address in config.headpat_device_uris.iter() {
-            let handle = Self::new(address.clone(), TX_OSC_MOTOR_ADDRESS.to_string(), config.timeout_setting).await.unwrap();
-            socket_map.insert(address.clone(), handle);
+            let handle = Self::new(
+                address.uri.clone(),
+                address.device_type.as_address(),
+                config.timeout_setting
+            ).await.unwrap();
+            socket_map.insert(address.uri.clone(), handle);
         }
         socket_map
     }
